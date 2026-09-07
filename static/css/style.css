@@ -5,11 +5,11 @@
 }
 
 :root {
-    --ink: #1c1917;
-    --paper: #faf6f0;
-    --accent: #d95d39;
-    --accent-dark: #a8442a;
-    --line: #e3d9c9;
+    --ink: #fe8dad;
+    --paper: #fff4bb;
+    --accent: #ffb0c6;
+    --accent-dark: #e0537b;
+    --line: #fff4bb;
     --text-muted: #6b6459;
     --radius: 4px;
 }
@@ -191,5 +191,70 @@ h1, .brand {
 
     .social-links {
         justify-content: flex-start;
+    }
+}
+
+.section-experiences {
+    padding: 4rem 0 5rem;
+}
+
+.experiences h2 {
+    font-family: "Space Grotesk", -apple-system, sans-serif;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.description {
+    max-width: 700px;
+    color: var(--text-muted);
+    margin-bottom: 3rem;
+}
+
+.list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.experience-card {
+    border: 1.5px solid var(--ink);
+    border-radius: 20px;
+    padding: 1.5rem;
+    background-color: var(--accent);
+    color: #fff4bb
+}
+
+.isi-experience-card h3 {
+    font-family: "Space Grotesk", -apple-system, sans-serif;
+    font-size: 1.5rem;
+    margin-bottom: 0.2rem;
+}
+
+.organization {
+    font-size: 1rem;
+}
+
+.masa-jabatan {
+    font-size: 0.85rem;
+    color: var(--accent-dark);
+    margin-top: 0.2rem;
+}
+
+.kegiatan-photo {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.photos {
+    width: 190px;
+    height: 170px;
+    object-fit: cover;
+    border: 1.5px solid var(--ink);
+}
+
+@media (max-width: 600px) {
+    .list {
+        grid-template-columns: 1fr;
     }
 }
