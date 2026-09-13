@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from main.models import Experience
+from main.models import Experience, Volunteering
 
 
 class MainTest(TestCase):
@@ -56,3 +56,28 @@ class MainTest(TestCase):
         self.assertFalse(self.experience.is_ongoing)
         self.assertContains(response, "Selesai")
         self.assertNotContains(response, "Sedang berlangsung")
+
+    def test_volunteering_page_is_accessible(self):
+        response = self.client.get(reverse("main:show_volunteering"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "volunteering.html")
+
+    def test_volunteering_data_is_displayed(self):
+        volunteering = Volunteering.objects.create(
+            title="Test Volunteering",
+            description="Ini adalah volunteering untuk testing.",
+            category="volunteer",
+        )
+
+        response = self.client.get(reverse("main:show_volunteering"))
+
+        self.assertContains(response, volunteering.title)
+        self.assertContains(response, volunteering.description)
+
+    def test_empty_volunteering_page(self):
+        response = self.client.get(reverse("main:show_volunteering"))
+        self.assertContains(
+            response,
+            "Belum ada pengalaman volunteering yang ditambahkan."
+        )
