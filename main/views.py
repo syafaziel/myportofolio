@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
 # Create your views here.
-from main.models import Experience
+from main.models import Experience, Volunteering
 
 
 def show_main(request):
@@ -23,3 +23,10 @@ def show_experience(request):
         "experience_list": Experience.objects.all(),
     }
     return render(request, "experience.html", context)
+
+def show_volunteering(request):
+    context = {
+        "name": "Asfara Quaneisha Syafaziel",
+        "volunteer_list": Volunteering.objects.all(),
+    }
+    return render(request, "volunteering.html", context)
