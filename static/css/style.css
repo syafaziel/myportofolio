@@ -21,7 +21,8 @@ body {
     line-height: 1.6;
 }
 
-h1, .brand {
+h1,
+.brand {
     font-family: "Space Grotesk", -apple-system, sans-serif;
 }
 
@@ -30,6 +31,10 @@ h1, .brand {
     margin: 0 auto;
     padding: 0 1.5rem;
 }
+
+/* =========================
+   HEADER
+   ========================= */
 
 .site-header {
     border-bottom: 1px solid var(--line);
@@ -60,6 +65,14 @@ h1, .brand {
     font-size: 0.95rem;
 }
 
+.site-header nav a:hover {
+    color: var(--accent-dark);
+}
+
+/* =========================
+   PROFILE / HERO
+   ========================= */
+
 .hero {
     padding: 4.5rem 0 5rem;
 }
@@ -69,7 +82,7 @@ h1, .brand {
     grid-template-columns: 1.3fr 1fr;
     grid-template-areas:
         "identity photo"
-        "details  photo";
+        "details photo";
     gap: 1.5rem 3rem;
 }
 
@@ -169,30 +182,104 @@ h1, .brand {
     border: 3px solid var(--ink);
 }
 
-.site-footer {
-    padding: 1.5rem;
-    color: var(--text-muted);
-    font-size: 0.85rem;
+/* =========================
+   EXPERIENCE + VOLUNTEERING
+   ========================= */
+
+.experience-section {
+    padding: 4rem 0;
     border-top: 1px solid var(--line);
 }
 
-@media (max-width: 600px) {
-    .hero-grid {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-            "identity"
-            "photo"
-            "details";
-    }
-
-    .hero-photo {
-        max-width: 220px;
-    }
-
-    .social-links {
-        justify-content: flex-start;
-    }
+.section-kicker {
+    color: var(--accent-dark);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
+
+.experience-section h1 {
+    margin: 0.4rem 0 1.5rem;
+    font-size: 2rem;
+}
+
+/* Grid untuk Experience */
+.experience-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+/* Grid untuk Volunteering */
+.volunteering-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+/* =========================
+   CARDS
+   ========================= */
+
+/* Experience card */
+.experience-card {
+    padding: 1.5rem;
+    background-color: var(--accent);
+    border: 1.5px solid var(--ink);
+    border-radius: 20px;
+    color: var(--paper);
+}
+
+/* Volunteering card */
+.volunteering-card {
+    padding: 1.5rem;
+    background-color: var(--accent);
+    border: 1.5px solid var(--ink);
+    border-radius: 20px;
+    color: var(--paper);
+}
+
+/* Category */
+.experience-category {
+    display: inline-block;
+    color: var(--accent-dark);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+/* Card title */
+.experience-card h2,
+.volunteering-card h2 {
+    margin: 0.5rem 0;
+    font-family: "Space Grotesk", -apple-system, sans-serif;
+    font-size: 1.25rem;
+    color: var(--paper);
+}
+
+/* Card description */
+.experience-description {
+    color: var(--paper);
+}
+
+/* Status */
+.experience-status {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--paper);
+}
+
+/* Empty state */
+.empty-state {
+    color: var(--text-muted);
+}
+
+/* =========================
+   OLD EXPERIENCE STYLES
+   ========================= */
 
 .section-experiences {
     padding: 4rem 0 5rem;
@@ -214,14 +301,6 @@ h1, .brand {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.5rem;
-}
-
-.experience-card {
-    border: 1.5px solid var(--ink);
-    border-radius: 20px;
-    padding: 1.5rem;
-    background-color: var(--accent);
-    color: #fff4bb
 }
 
 .isi-experience-card h3 {
@@ -253,63 +332,41 @@ h1, .brand {
     border: 1.5px solid var(--ink);
 }
 
+/* =========================
+   FOOTER
+   ========================= */
+
+.site-footer {
+    padding: 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--line);
+}
+
+/* =========================
+   MOBILE
+   ========================= */
+
 @media (max-width: 600px) {
+    .hero-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "identity"
+            "photo"
+            "details";
+    }
+
+    .hero-photo {
+        max-width: 220px;
+    }
+
+    .social-links {
+        justify-content: flex-start;
+    }
+
+    .experience-grid,
+    .volunteering-list,
     .list {
         grid-template-columns: 1fr;
     }
 }
-
-.experience-section {
-    padding: 4rem 0;
-    border-top: 1px solid var(--line);
-}
-
-.section-kicker {
-    color: var(--accent-dark);
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.experience-section h1 {
-    margin: 0.4rem 0 1.5rem;
-    font-size: 2rem;
-}
-
-.experience-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1rem;
-}
-
-.experience-card {
-    padding: 1.25rem;
-    background-color: #fff;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-}
-
-.experience-category {
-    color: var(--accent-dark);
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
-.experience-card h2 {
-    margin: 0.5rem 0;
-    font-size: 1.25rem;
-}
-
-.experience-description,
-.empty-state {
-    color: var(--text-muted);
-}
-
-.experience-status {
-    margin-top: 1rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
