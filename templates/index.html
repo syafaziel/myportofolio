@@ -1,121 +1,204 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ name }} - Portfolio</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
-    <header class="site-header">
-        <div class="container">
-            <a href="#profile" class="brand">{{ name }}</a>
-            <nav>
-                <a href="{% url 'main:show_main' %}">Profile</a>
-                <a href="{% url 'main:show_experience' %}">Experience</a>
-                <a href="{% url 'main:show_volunteering' %}">Volunteering</a>
-            </nav>
-        </div>
-    </header>
+{% extends "base.html" %}
 
-    <main>
-        <section class="hero" id="profile">
-            <div class="container hero-grid">
-                <div class="hero-identity">
-                    <p class="hero-kicker">Information Systems &middot; Universitas Indonesia</p>
-                    <h1>{{ name }}</h1>
+{% block title %}{{ name }} - Portfolio{% endblock title %}
+
+{% block content %}
+
+<section class="hero" id="profile">
+    <div class="container hero-grid">
+
+        <div class="hero-identity">
+            <p class="hero-kicker">
+                Information Systems &middot; Universitas Indonesia
+            </p>
+
+            <h1>{{ name }}</h1>
+        </div>
+
+        <div class="hero-photo">
+            <div class="photo-block"></div>
+
+            <img
+                class="avatar"
+                src="/static/img/neishafix.jpeg"
+                alt="Photo of {{ name }}"
+            >
+        </div>
+
+        <div class="hero-details">
+
+            <p class="bio">{{ bio }}</p>
+
+            <dl class="meta-list">
+
+                <div class="meta-row">
+                    <dt>NPM</dt>
+                    <dd>{{ npm }}</dd>
                 </div>
-                <div class="hero-photo">
-                    <div class="photo-block"></div>
-                    <img class="avatar" src="/static/img/neishafix.jpeg" alt="Photo of {{ name }}">
+
+                <div class="meta-row">
+                    <dt>Program</dt>
+                    <dd>{{ study_program }}</dd>
                 </div>
-                <div class="hero-details">
-                    <p class="bio">{{ bio }}</p>
-                    <dl class="meta-list">
-                        <div class="meta-row">
-                            <dt>(( npm ))</dt>
-                            <dd>2506603532</dd>
-                        </div>
-                        <div class="meta-row">
-                            <dt>Program</dt>
-                            <dd>{{ study_program }}</dd>
-                        </div>
-                    </dl>
-                    <div class="social-links">
-                        <a href="https://github.com/syafaziel" class="social-link">GitHub</a>
-                        <a href="https://www.linkedin.com/in/asfara-quaneisha-syafaziel/" class="social-link">LinkedIn</a>
-                        <a href="mailto:asfaraquaneisha@gmail.com" class="social-link">Email</a>
-                    </div>
+
+            </dl>
+
+            <div class="social-links">
+
+                <a
+                    href="https://github.com/syafaziel"
+                    class="social-link"
+                >
+                    GitHub
+                </a>
+
+                <a
+                    href="https://www.linkedin.com/in/asfara-quaneisha-syafaziel/"
+                    class="social-link"
+                >
+                    LinkedIn
+                </a>
+
+                <a
+                    href="mailto:asfaraquaneisha@gmail.com"
+                    class="social-link"
+                >
+                    Email
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+
+<section class="section-experiences" id="experiences">
+
+    <div class="container experiences">
+
+        <h2>Neisha's Experiences Gallery</h2>
+
+        <p class="description">
+            I believe that knowledge is like kindness in a way it needs to be
+            passed, keep it going and continuing, the same reason why I believe
+            education should be accessible for everyone. By contributing in
+            volunteers and community programs in education, I am walking in
+            small steps towards education inclusivity that everyone deserves.
+        </p>
+
+        <div class="list">
+
+            <!-- Gallery kamu tetap di sini -->
+
+            <div class="experience-card">
+                <div class="isi-experience-card">
+                    <h3>Grantee</h3>
+                    <p class="organization">
+                        ParagonCorp Scholarship Program
+                    </p>
+                    <p class="masa-jabatan">
+                        November 2025-present
+                    </p>
+                </div>
+
+                <div class="kegiatan-photo">
+                    <img
+                        class="photos"
+                        src="/static/img/psp2.jpeg"
+                        alt="Neisha"
+                    >
+                    <img
+                        class="photos"
+                        src="/static/img/psp3.jpeg"
+                        alt="Neisha"
+                    >
                 </div>
             </div>
-        </section>
 
-        <section class="section-experiences" id="experiences"> 
-            <div class="container experiences">
-                <h2>Neisha's Experiences Gallery</h2>
-                <p class="description">I believe that knowledge is like kindness in a way it needs to be passed, keep it going and continuing, the same reason why I believe education should be accessible for everyone.
-                                        By contributing in volunteers and community programs in education, I am walking in small steps towards education inclusivity that everyone deserves. </p>
-                <div class="list">
-                    <div class="experience-card">
-                        <div class="isi-experience-card">
-                            <h3>Grantee</h3>
-                            <p class="organization">ParagonCorp Scholarship Program</p>
-                            <p class="masa-jabatan">November 2025-present</p>
-                        </div>
-                        <div class="kegiatan-photo">
-                            <img class="photos" src="/static/img/psp2.jpeg" alt="Neisha on duty as Humas BEM Fasilkom">
-                            <img class="photos" src="/static/img/psp3.jpeg" alt="Neisha on duty as Humas BEM Fasilkom">
-                        </div>
-                    </div>
 
-                    <div class="experience-card">
-                        <div class="isi-experience-card">
-                            <h3>Volunteer</h3>
-                            <p class="organization">BRIDGE by Girl Up Universitas Indonesia</p>
-                            <p class="masa-jabatan">August 2026</p>
-                        </div>
-                        <div class="kegiatan-photo">
-                            <img class="photos" src="/static/img/bridge1.jpeg" alt="Neisha on duty as Humas BEM Fasilkom">
-                            <img class="photos" src="/static/img/bridge2.jpeg" alt="Neisha on duty as Humas BEM Fasilkom">
-                        </div>
-                    </div>
+            <div class="experience-card">
+                <div class="isi-experience-card">
+                    <h3>Volunteer</h3>
+                    <p class="organization">
+                        BRIDGE by Girl Up Universitas Indonesia
+                    </p>
+                    <p class="masa-jabatan">
+                        August 2026
+                    </p>
+                </div>
 
-                    <div class="experience-card">
-                        <div class="isi-experience-card">
-                            <h3>Local Volunteer</h3>
-                            <p class="organization">iGV Summer ‘Rooted’ 2026 by AIESEC in UI</p>
-                            <p class="masa-jabatan">May 2026-July 2026</p>
-                        </div>
-                        <div class="kegiatan-photo">
-                            <img class="photos" src="/static/img/lv1.jpeg" alt="Neisha on duty as Humas BEM Fasilkom">
-                            <img class="photos" src="/static/img/lv3.jpeg" alt="Neisha on duty as Humas BEM Fasilkom">
-                        </div>
-                    </div>
-
-                    <div class="experience-card">
-                        <div class="isi-experience-card">
-                            <h3>Staff of Hubungan Masyarakat</h3>
-                            <p class="organization">BEM Fakultas Ilmu Komputer Universitas Indonesia</p>
-                            <p class="masa-jabatan">May 2026-present</p>
-                        </div>
-                        <div class="kegiatan-photo">
-                            <img class="photos" src="/static/img/bem1.jpeg" alt="Neisha on duty as Humas BEM Fasilkom">
-                            <img class="photos" src="/static/img/bem2.jpeg" alt="Neisha on duty as Humas BEM Fasilkom">
-                        </div>
-                    </div>
+                <div class="kegiatan-photo">
+                    <img
+                        class="photos"
+                        src="/static/img/bridge1.jpeg"
+                        alt="Neisha"
+                    >
+                    <img
+                        class="photos"
+                        src="/static/img/bridge2.jpeg"
+                        alt="Neisha"
+                    >
                 </div>
             </div>
-        </section>
 
-    </main>
 
-    <footer class="site-footer">
-        <div class="container">
-            <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+            <div class="experience-card">
+                <div class="isi-experience-card">
+                    <h3>Local Volunteer</h3>
+                    <p class="organization">
+                        iGV Summer ‘Rooted’ 2026 by AIESEC in UI
+                    </p>
+                    <p class="masa-jabatan">
+                        May 2026-July 2026
+                    </p>
+                </div>
+
+                <div class="kegiatan-photo">
+                    <img
+                        class="photos"
+                        src="/static/img/lv1.jpeg"
+                        alt="Neisha"
+                    >
+                    <img
+                        class="photos"
+                        src="/static/img/lv3.jpeg"
+                        alt="Neisha"
+                    >
+                </div>
+            </div>
+
+
+            <div class="experience-card">
+                <div class="isi-experience-card">
+                    <h3>Staff of Hubungan Masyarakat</h3>
+                    <p class="organization">
+                        BEM Fakultas Ilmu Komputer Universitas Indonesia
+                    </p>
+                    <p class="masa-jabatan">
+                        May 2026-present
+                    </p>
+                </div>
+
+                <div class="kegiatan-photo">
+                    <img
+                        class="photos"
+                        src="/static/img/bem1.jpeg"
+                        alt="Neisha"
+                    >
+                    <img
+                        class="photos"
+                        src="/static/img/bem2.jpeg"
+                        alt="Neisha"
+                    >
+                </div>
+            </div>
+
         </div>
-    </footer>
-</body>
-</html>
+
+    </div>
+
+</section>
+
+{% endblock content %}
