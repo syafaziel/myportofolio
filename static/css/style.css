@@ -487,8 +487,10 @@ h1,
 
 .experience-card-actions {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    gap: 0.5rem;
     margin-top: auto;
+    align-items: center;
 }
 
 .experience-status {
@@ -584,6 +586,15 @@ h1,
 
 .button-danger:hover {
     background: #8f1d14;
+}
+
+.volunteering-edit-button {
+    background: var(--accent);
+    color: white;
+}
+
+.volunteering-edit-button:hover {
+    background: var(--accent-dark);
 }
 
 /* =========================

@@ -1,71 +1,145 @@
 {% extends "base.html" %}
 
-{% block title %}Volunteering - {{ name }}{% endblock title %}
+{% block title %}
+    <title>Volunteering — {{ name }}</title>
+{% endblock title %}
 
 {% block content %}
 
-<section class="experience-section">
+<main>
+    <section class="experience-section" id="volunteering">
 
-    <div class="container">
+        <div class="container">
 
-        <p class="section-kicker">
-            Giving back & getting involved
-        </p>
+            <div class="experience-header">
 
-        <h1>Volunteering</h1>
-
-        <div class="volunteering-list">
-
-            {% for volunteer in volunteer_list %}
-
-                <article class="volunteering-card">
-
-                    <span class="experience-category">
-                        {{ volunteer.category }}
-                    </span>
-
-                    {% if experience.thumbnail %}
-                        <img
-                            src="{{ experience.thumbnail }}"
-                            alt="{{ experience.title }}"
-                            class="experience-thumbnail"
-                        >
-                    {% endif %}
-
-                    <h2>{{ volunteer.title }}</h2>
-
-                    <p class="experience-description">
-                        {{ volunteer.description }}
+                <div>
+                    <p class="section-kicker">
+                        Perjalanan saya sejauh ini
                     </p>
 
-                    {% if volunteer.is_ongoing %}
+                    <h1>Volunteering</h1>
+                </div>
 
-                        <p class="experience-status">
-                            Sedang berlangsung
+                <a
+                    href="{% url 'main:create_volunteering' %}"
+                    class="button experience-add-button"
+                >
+                    <span aria-hidden="true">+</span>
+                    Add Volunteering
+                </a>
+
+            </div>
+
+            <form
+                method="get"
+                action="{% url 'main:show_volunteering' %}"
+                class="experience-search"
+            >
+                <input
+                    type="search"
+                    name="title"
+                    value="{{ title_query }}"
+                    placeholder="Cari berdasarkan nama volunteering"
+                    class="experience-search__input"
+                    aria-label="Cari berdasarkan nama volunteering"
+                >
+
+                <button type="submit" class="button">
+                    Cari
+                </button>
+            </form>
+
+            <div class="experience-grid">
+
+                {% for volunteering in volunteer_list %}
+
+                    <article class="experience-card">
+
+                        <span class="experience-category">
+                            {{ volunteering.category }}
+                        </span>
+
+                        {% if volunteering.thumbnail %}
+                            <img
+                                src="{{ volunteering.thumbnail }}"
+                                alt="{{ volunteering.title }}"
+                                class="experience-thumbnail"
+                            >
+                        {% endif %}
+
+                        <h2>{{ volunteering.title }}</h2>
+
+                        <p class="experience-description">
+                            {{ volunteering.description }}
+                        </p>
+
+                        {% if volunteering.is_ongoing %}
+
+                            <p class="experience-status">
+                                Sedang berlangsung
+                            </p>
+
+                        {% else %}
+
+                            <p class="experience-status">
+                                Selesai
+                            </p>
+
+                        {% endif %}
+
+                        <div class="experience-card-actions">
+
+                            <!-- EDIT -->
+                            <a
+                                href="{% url 'main:update_volunteering' volunteering.id %}"
+                                class="button volunteering-edit-button"
+                            >
+                                Edit Volunteering
+                            </a>
+
+                            <!-- DELETE -->
+                            <form
+                                method="post"
+                                action="{% url 'main:delete_volunteering' volunteering.id %}"
+                            >
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    class="button button-danger"
+                                >
+                                    Hapus Volunteering
+                                </button>
+                            </form>
+
+                        </div>
+
+                    </article>
+
+                {% empty %}
+
+                    {% if title_query %}
+
+                        <p class="empty-state">
+                            Tidak ada volunteering dengan nama tersebut.
                         </p>
 
                     {% else %}
 
-                        <p class="experience-status">
-                            Selesai
+                        <p class="empty-state">
+                            Belum ada volunteering yang ditambahkan.
                         </p>
 
                     {% endif %}
 
-                </article>
+                {% endfor %}
 
-            {% empty %}
-
-                <p class="empty-state">
-                    Belum ada pengalaman volunteering yang ditambahkan.
-                </p>
-
-            {% endfor %}
+            </div>
 
         </div>
 
-    </div>
-
-</section>
+    </section>
+</main>
 
 {% endblock content %}
