@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block meta %}
+{% block title %}
     <title>Experience — {{ name }}</title>
-{% endblock meta %}
+{% endblock title %}
 
 {% block content %}
 
@@ -59,6 +59,14 @@
                         <span class="experience-category">
                             {{ experience.get_category_display }}
                         </span>
+
+                        {% if experience.thumbnail %}
+                            <img
+                                src="{{ experience.thumbnail }}"
+                                alt="{{ experience.title }}"
+                                class="experience-thumbnail"
+                            >
+                        {% endif %}
 
                         <h2>{{ experience.title }}</h2>
 

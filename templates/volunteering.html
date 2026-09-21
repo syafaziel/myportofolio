@@ -24,6 +24,14 @@
                         {{ volunteer.category }}
                     </span>
 
+                    {% if experience.thumbnail %}
+                        <img
+                            src="{{ experience.thumbnail }}"
+                            alt="{{ experience.title }}"
+                            class="experience-thumbnail"
+                        >
+                    {% endif %}
+
                     <h2>{{ volunteer.title }}</h2>
 
                     <p class="experience-description">

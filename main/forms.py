@@ -18,7 +18,7 @@ class ExperienceForm(ModelForm):
             "description": "Deskripsi Pengalaman",
             "category": "Kategori Pengalaman",
             "thumbnail": "Gambar Pengalaman",
-            "ended_at": "Tanggal berakhirnya pengalaman"
+            "ended_at": "Tanggal berakhirnya pengalaman",
         }
 
         widgets = {
@@ -34,17 +34,7 @@ class ExperienceForm(ModelForm):
                     "rows": 3,
                 }
             ),
-            "category": TextInput(
-                attrs={
-                    "placeholder": "Kepanitiaan, Magang, Organisasi",
-                }
-            ),
             "thumbnail": URLInput(
-                attrs={
-                    "placeholder":  "https://drive.google.com/thumbnail?id=...&sz=w1000",
-                }
-            ),
-            "ended_at": URLInput(
                 attrs={
                     "placeholder": "https://drive.google.com/thumbnail?id=...&sz=w1000",
                 }
