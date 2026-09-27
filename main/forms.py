@@ -58,13 +58,13 @@ class VolunteeringForm(ModelForm):
             "description": "Deskripsi Volunteering",
             "category": "Kategori Volunteering",
             "thumbnail": "Gambar Volunteering",
-            "ended_at": "Tanggal berakhirnya volunteering",
+            "ended_at": "Tanggal Berakhirnya Volunteering",
         }
 
         widgets = {
             "title": TextInput(
                 attrs={
-                    "placeholder": "BRIDGE by Girl Up UI",
+                    "placeholder": "Nama Volunteering",
                     "maxlength": 255,
                 }
             ),

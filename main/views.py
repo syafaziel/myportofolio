@@ -1,7 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponse
+from django.contrib.auth import login, logout
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
+import datetime
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 
 # Create your views here.
 from main.models import Experience, Volunteering
@@ -9,6 +14,7 @@ from main.forms import ExperienceForm, VolunteeringForm
 
 
 def show_main(request):
+    last_login = request.COOKIES.get('last_login', 'Belum ada sesi login / Cookie tidak ditemukan')
     context = {
         "name": "Asfara Quaneisha Syafaziel",
         "npm": "2506603532",
@@ -17,17 +23,28 @@ def show_main(request):
             "A first-year Information Systems student eager to develop my skills and knowledge; "
             "particularly in technology, leadership, and education. Actively seeking new opportunities and experiences <3"
         ),
+        "last_login": last_login,
     }
     return render(request, "index.html", context)
 
-
 def show_experience(request):
+    json_response = get_experience_json(request)
+
+    experiences = serializers.deserialize(
+        "json",
+        json_response.content.decode("utf-8"),
+    )
+    experiences = [experience.object for experience in experiences]
+    title_query = request.GET.get("title", "").strip()
+
     context = {
         "name": "Asfara Quaneisha Syafaziel",
-        "experience_list": Experience.objects.all(),
+        "experience_list": experiences,
+        "title_query": title_query,
     }
     return render(request, "experience.html", context)
 
+@login_required(login_url="/login/")
 def create_experience(request):
     form = ExperienceForm(request.POST or None)
 
@@ -54,23 +71,7 @@ def get_experience_json(request):
     experience_json = serializers.serialize("json", experience)
     return HttpResponse(experience_json, content_type="application/json")
 
-def show_experience(request):
-    json_response = get_experience_json(request)
-
-    experiences = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-    experiences = [experience.object for experience in experiences]
-    title_query = request.GET.get("title", "").strip()
-
-    context = {
-        "name": "Asfara Quaneisha Syafaziel",
-        "experience_list": experiences,
-        "title_query": title_query,
-    }
-    return render(request, "experience.html", context)
-
+@login_required(login_url="/login/")
 def delete_experience(request, experience_id):
     experience = get_object_or_404(Experience, pk=experience_id)
 
@@ -81,7 +82,11 @@ def delete_experience(request, experience_id):
 
     return redirect("main:show_experience")
 
+@login_required(login_url="/login/")
 def create_volunteering(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     form = VolunteeringForm(request.POST or None)
 
     if request.method == "POST":
@@ -97,7 +102,7 @@ def create_volunteering(request):
 
     return render(request, "volunteering_form.html", context)
 
-
+@login_required(login_url="/login/")
 def update_volunteering(request, volunteering_id):
     volunteering = get_object_or_404(Volunteering, pk=volunteering_id)
 
@@ -120,7 +125,7 @@ def update_volunteering(request, volunteering_id):
 
     return render(request, "volunteering_form.html", context)
 
-
+@login_required(login_url="/login/")
 def delete_volunteering(request, volunteering_id):
     volunteering = get_object_or_404(
         Volunteering,
@@ -145,8 +150,7 @@ def get_volunteering_json(request):
         )
 
     volunteering_json = serializers.serialize(
-        "json",
-        volunteering
+        "json", volunteering, use_natural_foreign_keys=True
     )
 
     return HttpResponse(
@@ -181,3 +185,53 @@ def show_volunteering(request):
         "volunteering.html",
         context
     )
+
+def register(request):
+    form = UserCreationForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Akun berhasil dibuat. Silakan login.")
+        return redirect("main:login")
+
+    context = {
+        "name": "Asfara Quaneisha Syafaziel",
+        "form": form,
+    }
+    return render(request, "register.html", context)
+
+def login_user(request):
+    form = AuthenticationForm(request, data=request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        user = form.get_user()
+        login(request, user)
+        response = redirect("main:show_main")
+        response.set_cookie('last_login', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        return response
+
+    context = {
+        "name": "Asfara Quaneisha Syafaziel",
+        "form": form,
+    }
+    return render(request, "login.html", context)
+
+def logout_user(request):
+    logout(request)
+    response = redirect("main:show_main")
+    response.delete_cookie('last_login')
+    return response
+
+@login_required(login_url="/login/")
+def toggle_star(request, volunteering_id):
+    volunteering = get_object_or_404(Volunteering, pk=volunteering_id)
+
+    if request.method == "POST":
+        # Kalau akun ini sudah pernah memberi star, batalkan star-nya.
+        # Kalau belum, tambahkan star.
+        if request.user in volunteering.starred_by.all():
+            volunteering.starred_by.remove(request.user)
+        else:
+            volunteering.starred_by.add(request.user)
+
+    return redirect("main:show_volunteering")

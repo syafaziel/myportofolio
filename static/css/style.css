@@ -504,8 +504,12 @@ h1,
 .experience-card-actions .button {
     font-size: 0.85rem;
     font-weight: 600;
+    white-space: nowrap;
 }
 
+.experience-card-actions .volunteering-edit-button {
+    background: var(--accent-dark);
+}
 
 /* =========================
    DELETE MODAL
@@ -589,7 +593,7 @@ h1,
 }
 
 .volunteering-edit-button {
-    background: var(--accent);
+    background: var(--accent-dark);
     color: white;
 }
 
@@ -600,6 +604,13 @@ h1,
 /* =========================
    MOBILE
    ========================= */
+
+    .button-star {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: var(--accent-dark);
+    }
 
 @media (max-width: 600px) {
 
@@ -661,5 +672,20 @@ h1,
     .volunteering-list,
     .list {
         grid-template-columns: 1fr;
+    }
+
+    .star-form {
+        display: inline;
+    }
+
+    .button-star.is-starred {
+        background: var(--accent-dark);
+    }
+
+    .star-count {
+        padding: 0.05rem 0.4rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.25);
+        font-size: 0.8rem;
     }
 }

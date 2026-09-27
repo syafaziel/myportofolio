@@ -21,14 +21,12 @@
                     <h1>Neisha's Volunteering Gallery</h1>
                 </div>
 
-                <a
-                    href="{% url 'main:create_volunteering' %}"
-                    class="button experience-add-button"
-                >
+            {% if user.is_superuser %}
+                <a href="{% url 'main:create_volunteering' %}"class="button experience-add-button">
                     <span aria-hidden="true">+</span>
                     Add Volunteering
                 </a>
-
+            {% endif %}
             </div>
 
             <form
@@ -89,29 +87,16 @@
                         {% endif %}
 
                         <div class="experience-card-actions">
-
-                            <!-- EDIT -->
+                            {% if user.is_superuser %}
                             <a
                                 href="{% url 'main:update_volunteering' volunteering.id %}"
                                 class="button volunteering-edit-button"
                             >
                                 Edit Volunteering
                             </a>
-
-                            <!-- DELETE -->
-                            <form
-                                method="post"
-                                action="{% url 'main:delete_volunteering' volunteering.id %}"
-                            >
-                                {% csrf_token %}
-
-                                <button
-                                    type="submit"
-                                    class="button button-danger"
-                                >
-                                    Hapus Volunteering
-                                </button>
-                            </form>
+                            {% include "components/volunteering_star.html" with volunteering=volunteering %}
+                            {% include "components/volunteering_delete_modal.html" with volunteering=volunteering %}
+                            {% endif %} 
 
                         </div>
 

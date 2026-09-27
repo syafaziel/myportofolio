@@ -1,0 +1,72 @@
+<button
+    type="button"
+    class="button button-danger"
+    popovertarget="delete-volunteering-{{ volunteering.id }}"
+    aria-label="Hapus {{ volunteering.title }}"
+    title="Hapus Volunteering"
+>
+    Hapus Volunteering
+</button>
+
+<div
+    id="delete-volunteering-{{ volunteering.id }}"
+    class="experience-delete-modal"
+    popover="auto"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="delete-volunteering-title-{{ volunteering.id }}"
+>
+    <button
+        type="button"
+        class="experience-delete-modal__backdrop"
+        popovertarget="delete-volunteering-{{ volunteering.id }}"
+        popovertargetaction="hide"
+        aria-label="Tutup konfirmasi hapus"
+    ></button>
+
+    <div class="experience-delete-modal__content">
+
+        <button
+            type="button"
+            class="experience-delete-modal__close"
+            popovertarget="delete-volunteering-{{ volunteering.id }}"
+            popovertargetaction="hide"
+            aria-label="Tutup konfirmasi hapus"
+        >
+            ×
+        </button>
+
+        <h2 id="delete-volunteering-title-{{ volunteering.id }}">
+            Hapus Volunteering?
+        </h2>
+
+        <p>
+            Apakah kamu yakin ingin menghapus
+            <strong>{{ volunteering.title }}</strong>?
+        </p>
+
+        <div class="experience-delete-modal__actions">
+
+            <button
+                type="button"
+                class="button button-secondary"
+                popovertarget="delete-volunteering-{{ volunteering.id }}"
+                popovertargetaction="hide"
+            >
+                Batal
+            </button>
+
+            <form
+                method="post"
+                action="{% url 'main:delete_volunteering' volunteering.id %}"
+            >
+                {% csrf_token %}
+
+                <button type="submit" class="button button-danger">
+                    Ya, Hapus
+                </button>
+            </form>
+
+        </div>
+    </div>
+</div>
