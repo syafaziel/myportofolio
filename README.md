@@ -64,3 +64,12 @@ Selain itu, JSON sangat cocok digunakan untuk pertukaran data antara server dan 
 AI Disclosure
 Dalam pengerjaan Tugas 3 ini, saya menggunakan ChatGPT sebagai alat bantu untuk memahami konsep dan proses implementasi Django, terutama pada bagian yang berkaitan dengan Django MVT, ModelForm, CRUD, JSON data delivery, template inheritance, serta debugging saat terjadi error yang tidak bisa saya pecahkan sendiri,
 Untuk penggunaan AI, saya biasanya memberikan potongan code, error message, atau konteks tugas, kemudian meminta penjelasan step-by-step atau bantuan mencari penyebab masalah. Setelah mendapatkan saran, saya mencoba menerapkannya sendiri dan melakukan pengecekan melalui localhost maupun PWS.
+
+### Tugas 4
+AI Disclosure
+Dalam pengerjaan Tugas 4, saya menggunakan AI sebagai alat bantu untuk memahami konsep dan melakukan debugging pada project Django yang sudah saya kerjakan.
+Beberapa hal yang saya gunakan bantuan AI antara lain:
+- Memahami cara kerja authentication dan authorization di Django, terutama perbedaan antara superuser, user biasa, dan user dengan permission tertentu.
+- Membantu mengecek implementasi Editor Group dan permission change_volunteering, termasuk pengecekan request.user.has_perm().
+- Membantu memahami dan memperbaiki alur fitur Edit, Delete, dan Star/Unstar Volunteering, termasuk penggunaan ManyToManyField dan csrf_token.
+- Membantu melakukan debugging error ketika fitur Edit tidak berjalan dan ketika halaman /volunteering/ mengalami error saat deployment
