@@ -87,16 +87,23 @@
                         {% endif %}
 
                         <div class="experience-card-actions">
+
+                            {% if user.is_authenticated %}
+                                {% include "components/volunteering_star.html" with volunteering=volunteering %}
+                            {% endif %}
+
+                            {% if user.is_superuser or perms.main.change_volunteering %}
+                                <a
+                                    href="{% url 'main:update_volunteering' volunteering.id %}"
+                                    class="button volunteering-edit-button"
+                                >
+                                    Edit Volunteering
+                                </a>
+                            {% endif %}
+
                             {% if user.is_superuser %}
-                            <a
-                                href="{% url 'main:update_volunteering' volunteering.id %}"
-                                class="button volunteering-edit-button"
-                            >
-                                Edit Volunteering
-                            </a>
-                            {% include "components/volunteering_star.html" with volunteering=volunteering %}
-                            {% include "components/volunteering_delete_modal.html" with volunteering=volunteering %}
-                            {% endif %} 
+                                {% include "components/volunteering_delete_modal.html" with volunteering=volunteering %}
+                            {% endif %}
 
                         </div>
 

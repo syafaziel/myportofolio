@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
@@ -46,6 +46,8 @@ def show_experience(request):
 
 @login_required(login_url="/login/")
 def create_experience(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied
     form = ExperienceForm(request.POST or None)
 
     if request.method == "POST":
@@ -73,6 +75,8 @@ def get_experience_json(request):
 
 @login_required(login_url="/login/")
 def delete_experience(request, experience_id):
+    if not request.user.is_superuser:
+        raise PermissionDenied
     experience = get_object_or_404(Experience, pk=experience_id)
 
     if request.method == "POST":
@@ -104,6 +108,8 @@ def create_volunteering(request):
 
 @login_required(login_url="/login/")
 def update_volunteering(request, volunteering_id):
+    if not (request.user.is_superuser or request.user.has_perm("main.change_volunteering")):
+        raise PermissionDenied
     volunteering = get_object_or_404(Volunteering, pk=volunteering_id)
 
     form = VolunteeringForm(
@@ -127,10 +133,9 @@ def update_volunteering(request, volunteering_id):
 
 @login_required(login_url="/login/")
 def delete_volunteering(request, volunteering_id):
-    volunteering = get_object_or_404(
-        Volunteering,
-        pk=volunteering_id
-    )
+    if not (request.user.is_superuser):
+            raise PermissionDenied
+    volunteering = get_object_or_404(Volunteering,pk=volunteering_id)
 
     if request.method == "POST":
         volunteering.delete()

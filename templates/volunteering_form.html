@@ -9,9 +9,13 @@
 <main>
         <section class="volunteering-section">
             <div class="container">
-                <h1>Add New Volunteerings</h1>
+                {% if volunteering %}
+                    <h1>Edit Volunteering</h1>
+                {% else %}
+                    <h1>Add New Volunteering</h1>
+                {% endif %}
                 <form method="post"
-                      action="{% url 'main:create_volunteering' %}"
+                      action="{% if volunteering %}{% url 'main:update_volunteering' volunteering.id %}{% else %}{% url 'main:create_volunteering' %}{% endif %}"
                       class="volunteering-form">
                     {% csrf_token %}
                     {% for field in form %}
@@ -23,7 +27,13 @@
                             {% endfor %}
                         </div>
                     {% endfor %}
-                    <button type="submit" class="button">Tambah Volunteering</button>
+                    <button type="submit" class="button">
+                        {% if volunteering %}
+                            Simpan Perubahan
+                        {% else %}
+                            Tambah Volunteering
+                        {% endif %}
+                    </button>
                     <a href="{% url 'main:show_volunteering' %}" class="button button-secondary">Batal</a>
                 </form>
             </div>
