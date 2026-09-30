@@ -21,20 +21,30 @@
                     <h1>Neisha's Volunteering Gallery</h1>
                 </div>
 
-            {% if user.is_superuser %}
-                <a href="{% url 'main:create_volunteering' %}"class="button experience-add-button">
-                    <span aria-hidden="true">+</span>
-                    Add Volunteering
-                </a>
-            {% endif %}
+                {% if user.is_superuser %}
+                    <button
+                        type="button"
+                        class="button experience-add-button"
+                        popovertarget="add-volunteering-modal"
+                    >
+                        <span aria-hidden="true">+</span>
+                        Add Volunteering
+                    </button>
+                {% endif %}
             </div>
+            
+            <button class="button button-secondary" onclick="showToast('Notifikasi Sistem', 'Project berhasil dimuat dengan baik!', 'success')">
+                Test Toast Notifikasi
+            </button>
 
             <form
+                id="volunteering-search-form"
                 method="get"
                 action="{% url 'main:show_volunteering' %}"
                 class="experience-search"
             >
                 <input
+                    id="search-input"
                     type="search"
                     name="title"
                     value="{{ title_query }}"
@@ -48,90 +58,379 @@
                 </button>
             </form>
 
-            <div class="experience-grid">
-
-                {% for volunteering in volunteer_list %}
-
-                    <article class="experience-card">
-
-                        <span class="experience-category">
-                            {{ volunteering.category }}
-                        </span>
-
-                        {% if volunteering.thumbnail %}
-                            <img
-                                src="{{ volunteering.thumbnail }}"
-                                alt="{{ volunteering.title }}"
-                                class="experience-thumbnail"
-                            >
-                        {% endif %}
-
-                        <h2>{{ volunteering.title }}</h2>
-
-                        <p class="experience-description">
-                            {{ volunteering.description }}
-                        </p>
-
-                        {% if volunteering.is_ongoing %}
-
-                            <p class="experience-status">
-                                Sedang berlangsung
-                            </p>
-
-                        {% else %}
-
-                            <p class="experience-status">
-                                Selesai
-                            </p>
-
-                        {% endif %}
-
-                        <div class="experience-card-actions">
-
-                            {% if user.is_authenticated %}
-                                {% include "components/volunteering_star.html" with volunteering=volunteering %}
-                            {% endif %}
-
-                            {% if user.is_superuser or perms.main.change_volunteering %}
-                                <a
-                                    href="{% url 'main:update_volunteering' volunteering.id %}"
-                                    class="button volunteering-edit-button"
-                                >
-                                    Edit Volunteering
-                                </a>
-                            {% endif %}
-
-                            {% if user.is_superuser %}
-                                {% include "components/volunteering_delete_modal.html" with volunteering=volunteering %}
-                            {% endif %}
-
-                        </div>
-
-                    </article>
-
-                {% empty %}
-
-                    {% if title_query %}
-
-                        <p class="empty-state">
-                            Tidak ada volunteering dengan nama tersebut.
-                        </p>
-
-                    {% else %}
-
-                        <p class="empty-state">
-                            Belum ada volunteering yang ditambahkan.
-                        </p>
-
-                    {% endif %}
-
-                {% endfor %}
-
+            <div id="loading" class="empty-state hide">
+                <p>Memuat volunteering...</p>
             </div>
+
+            <div id="error" class="empty-state hide">
+                <p>Gagal memuat data volunteering. Silakan coba lagi.</p>
+            </div>
+
+            <div id="empty" class="empty-state hide">
+                <p>
+                    {% if title_query %}
+                        Tidak ada volunteering dengan nama tersebut.
+                    {% else %}
+                        Belum ada volunteering yang ditambahkan.
+                    {% endif %}
+                </p>
+            </div>
+
+            <div id="grid" class="experience-grid hide"></div>
 
         </div>
 
     </section>
 </main>
+
+{% if user.is_superuser %}
+    {% include "components/volunteering_form_modal.html" %}
+{% endif %}
+
+<script>
+    // Konfigurasi
+    const BASE_VOLUNTEERING_ENDPOINT = "{% url 'main:get_volunteering_json' %}";
+    const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+
+    let volunteeringAbortController;
+
+    // Elemen DOM
+    const loadingState = document.getElementById('loading');
+    const errorState = document.getElementById('error');
+    const emptyState = document.getElementById('empty');
+    const gridContainer = document.getElementById('grid');
+    const searchForm = document.getElementById('volunteering-search-form');
+    const searchInput = document.getElementById('search-input');
+
+    const SEARCH_DEBOUNCE_DELAY = 300;
+    let searchDebounceTimer;
+
+
+    // Menyembunyikan / menampilkan section halaman
+    function displayPageSection({
+        showLoading = false,
+        showError = false,
+        showEmpty = false,
+        showGrid = false
+    }) {
+        loadingState.classList.toggle('hide', !showLoading);
+        errorState.classList.toggle('hide', !showError);
+        emptyState.classList.toggle('hide', !showEmpty);
+        gridContainer.classList.toggle('hide', !showGrid);
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
+
+    // Membuat elemen card volunteering
+    function buildVolunteeringCardElement(item) {
+        const volunteering = item.fields;
+        const volunteeringId = item.pk;
+
+        const articleElement = document.createElement('article');
+        articleElement.className = 'volunteering-card';
+
+
+        // URL delete
+        const deleteUrl = "{% url 'main:delete_volunteering' '00000000-0000-0000-0000-000000000000' %}"
+            .replace(
+                '00000000-0000-0000-0000-000000000000',
+                volunteeringId
+            );
+
+
+        // URL star
+        const starUrl = "{% url 'main:toggle_star' '00000000-0000-0000-0000-000000000000' %}"
+            .replace(
+                '00000000-0000-0000-0000-000000000000',
+                volunteeringId
+            );
+
+
+        // Tombol delete hanya untuk superuser
+        const deleteHtml = IS_SUPERUSER
+            ? `
+                <form method="post" action="${deleteUrl}" style="display:inline;">
+                    {% csrf_token %}
+                    <button
+                        type="submit"
+                        class="button button-danger"
+                        onclick="return confirm('Yakin ingin menghapus volunteering ini?');"
+                    >
+                        Hapus
+                    </button>
+                </form>
+            `
+            : '';
+
+
+        // Star
+        const isStarredClass = volunteering.is_starred
+            ? " is-starred"
+            : "";
+
+        const starText = volunteering.is_starred
+            ? "Unstar"
+            : "Star";
+
+        const starTitle = volunteering.star_count > 0
+            ? `Dibintangi oleh ${escapeHtml(volunteering.starred_by_names)}`
+            : "Jadilah yang pertama memberi star";
+
+
+        // Card
+        const completeCardHtml = `
+            <h2>${escapeHtml(volunteering.title)}</h2>
+
+            <span class="experience-category">
+                ${escapeHtml(volunteering.category)}
+            </span>
+
+            <p class="experience-description">
+                ${escapeHtml(volunteering.description)}
+            </p>
+
+            <div class="project-card-actions">
+                <div class="project-actions">
+
+                    <form
+                        method="post"
+                        action="${starUrl}"
+                        class="star-form"
+                    >
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="button button-star${isStarredClass}"
+                            title="${starTitle}"
+                        >
+                            ★
+                            ${starText}
+                            <span class="star-count">
+                                ${volunteering.star_count}
+                            </span>
+                        </button>
+                    </form>
+
+                    ${deleteHtml}
+
+                </div>
+            </div>
+        `;
+
+        articleElement.innerHTML = completeCardHtml;
+
+        return articleElement;
+    }
+
+
+    // Fetch data volunteering
+    async function fetchVolunteering(searchQuery = "") {
+
+        if (volunteeringAbortController) {
+            volunteeringAbortController.abort();
+        }
+
+        volunteeringAbortController = new AbortController();
+
+        try {
+            displayPageSection({
+                showLoading: true
+            });
+
+            const url = searchQuery
+                ? `${BASE_VOLUNTEERING_ENDPOINT}?title=${encodeURIComponent(searchQuery)}`
+                : BASE_VOLUNTEERING_ENDPOINT;
+
+            const response = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json'
+                },
+                signal: volunteeringAbortController.signal
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch data');
+            }
+
+            const volunteeringData = await response.json();
+
+
+            if (volunteeringData.length === 0) {
+
+                displayPageSection({
+                    showEmpty: true
+                });
+
+            } else {
+
+                gridContainer.innerHTML = '';
+
+                volunteeringData.forEach(item => {
+                    gridContainer.appendChild(
+                        buildVolunteeringCardElement(item)
+                    );
+                });
+
+                displayPageSection({
+                    showGrid: true
+                });
+            }
+
+        } catch (error) {
+
+            if (error.name === 'AbortError') {
+                return;
+            }
+
+            console.error(
+                'Error loading volunteering:',
+                error
+            );
+
+            displayPageSection({
+                showError: true
+            });
+        }
+    }
+
+
+    // Event handler untuk search
+    function searchVolunteering() {
+        fetchVolunteering(searchInput.value.trim());
+    }
+
+    searchInput.addEventListener("input", function() {
+        clearTimeout(searchDebounceTimer);
+
+        searchDebounceTimer = setTimeout(function() {
+            searchVolunteering();
+        }, SEARCH_DEBOUNCE_DELAY);
+    });
+
+    searchForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+        clearTimeout(searchDebounceTimer);
+        searchVolunteering();
+    });
+
+    const CREATE_VOLUNTEERING_ENDPOINT = "{% url 'main:create_volunteering_ajax' %}";
+    const volunteeringForm = document.getElementById('volunteering-form');
+
+    // Membaca nilai cookie CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(
+                        cookie.substring(name.length + 1)
+                    );
+                    break;
+                }
+            }
+        }
+
+        return cookieValue;
+    }
+
+    // Mengirim data volunteering ke server
+    async function addVolunteering(event) {
+        event.preventDefault();
+
+        const submitButton = volunteeringForm.querySelector(
+            'button[type="submit"]'
+        );
+
+        submitButton.disabled = true;
+
+        try {
+            const response = await fetch(CREATE_VOLUNTEERING_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: new FormData(volunteeringForm),
+            });
+
+            const result = await response.json().catch(() => ({}));
+
+            if (response.ok) {
+
+                volunteeringForm.reset();
+
+                closeVolunteeringModal();
+
+                showToast(
+                    'Berhasil',
+                    'Volunteering baru berhasil ditambahkan!',
+                    'success'
+                );
+
+            fetchVolunteering(searchInput.value.trim());
+
+        } else {
+
+            const errorMessages = result.errors
+                ? Object.values(result.errors)
+                    .flat()
+                    .map(error => error.message)
+                : [
+                    result.message ||
+                    `Terjadi kesalahan (status ${response.status}).`
+                ];
+
+            showToast(
+                'Gagal menambahkan volunteering',
+                errorMessages.join(' '),
+                'error'
+            );
+        }
+
+    } catch (error) {
+
+        console.error('Error adding volunteering:', error);
+
+        showToast(
+            'Gagal menambahkan volunteering',
+            'Tidak dapat terhubung ke server. Silakan coba lagi.',
+            'error'
+        );
+
+    } finally {
+
+        submitButton.disabled = false;
+
+    }
+}
+
+if (volunteeringForm) {
+    volunteeringForm.addEventListener('submit', addVolunteering);
+}
+
+    // Jalankan pertama kali
+    fetchVolunteering(
+        searchInput.value.trim()
+    );
+
+    function closeVolunteeringModal() { //WOI
+        document
+            .getElementById("add-volunteering-modal")
+            .hidePopover();
+    }
+
+</script>
 
 {% endblock content %}

@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
 import datetime
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.views.decorators.http import require_POST
 
 # Create your views here.
 from main.models import Experience, Volunteering
@@ -147,49 +148,55 @@ def delete_volunteering(request, volunteering_id):
 def get_volunteering_json(request):
     title_query = request.GET.get("title", "").strip()
 
-    volunteering = Volunteering.objects.all()
+    volunteering = Volunteering.objects.prefetch_related("starred_by").all()
 
     if title_query:
-        volunteering = volunteering.filter(
-            title__icontains=title_query
+        volunteering = volunteering.filter(title__icontains=title_query)
+
+    data = []
+
+    for item in volunteering:
+        starred_users = item.starred_by.all()
+
+        is_starred = (
+            request.user in starred_users
+            if request.user.is_authenticated
+            else False
         )
 
-    volunteering_json = serializers.serialize(
-        "json", volunteering, use_natural_foreign_keys=True
-    )
+        starred_by_names = ", ".join(
+            [user.username for user in starred_users]
+        )
 
-    return HttpResponse(
-        volunteering_json,
-        content_type="application/json"
-    )
+        data.append({
+            "pk": str(item.id),
+            "fields": {
+                "title": item.title,
+                "description": item.description,
+                "category": item.category,
+                "thumbnail": item.thumbnail,
+                "started_at": item.started_at,
+                "ended_at": item.ended_at,
+                "is_ongoing": item.is_ongoing,
+                "star_count": starred_users.count(),
+                "is_starred": is_starred,
+                "starred_by_names": starred_by_names,
+            },
+        })
+
+    return JsonResponse(data, safe=False)
 
 
 def show_volunteering(request):
-    json_response = get_volunteering_json(request)
-
-    volunteering = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8")
-    )
-
-    volunteering = [
-        item.object
-        for item in volunteering
-    ]
-
     title_query = request.GET.get("title", "").strip()
 
     context = {
         "name": "Asfara Quaneisha Syafaziel",
-        "volunteer_list": volunteering,
         "title_query": title_query,
+        "form": VolunteeringForm(),
     }
 
-    return render(
-        request,
-        "volunteering.html",
-        context
-    )
+    return render(request, "volunteering.html", context)
 
 def register(request):
     form = UserCreationForm(request.POST or None)
@@ -240,3 +247,29 @@ def toggle_star(request, volunteering_id):
             volunteering.starred_by.add(request.user)
 
     return redirect("main:show_volunteering")
+
+@require_POST
+def create_volunteering_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan volunteering."},
+            status=403,
+        )
+
+    form = VolunteeringForm(request.POST)
+
+    if form.is_valid():
+        volunteering = form.save()
+
+        return JsonResponse(
+            {
+                "message": "Volunteering berhasil ditambahkan.",
+                "pk": str(volunteering.id),
+            },
+            status=201,
+        )
+
+    return JsonResponse(
+        {"errors": form.errors.get_json_data()},
+        status=400,
+    )

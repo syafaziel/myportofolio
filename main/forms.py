@@ -1,5 +1,7 @@
 from django.forms import ModelForm, TextInput, Textarea, URLInput
 from main.models import Experience, Volunteering
+from django.core.exceptions import ValidationError
+from django.utils.html import strip_tags
 
 
 class ExperienceForm(ModelForm):
@@ -86,3 +88,21 @@ class VolunteeringForm(ModelForm):
                 }
             ),
         }
+
+    def clean_title(self):
+        title = strip_tags(self.cleaned_data["title"]).strip()
+
+        if not title:
+            raise ValidationError(
+                "Nama volunteering tidak boleh hanya berisi tag HTML."
+            )
+
+        return title
+
+
+    def clean_description(self):
+        return strip_tags(self.cleaned_data["description"]).strip()
+
+
+    def clean_category(self):
+        return strip_tags(self.cleaned_data["category"]).strip()
