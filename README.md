@@ -73,3 +73,12 @@ Beberapa hal yang saya gunakan bantuan AI antara lain:
 - Membantu mengecek implementasi Editor Group dan permission change_volunteering, termasuk pengecekan request.user.has_perm().
 - Membantu memahami dan memperbaiki alur fitur Edit, Delete, dan Star/Unstar Volunteering, termasuk penggunaan ManyToManyField dan csrf_token.
 - Membantu melakukan debugging error ketika fitur Edit tidak berjalan dan ketika halaman /volunteering/ mengalami error saat deployment
+
+### Tugas 5
+Pertanyaan Reflektif
+1. Debouncing adalah teknik untuk menunda pengiriman request sampai pengguna berhenti mengetik selama beberapa waktu. Pada fitur pencarian Experience, debounce digunakan selama 300 ms. Jadi, request AJAX nggak dikirim setiap kali satu karakter diketik, sehingga jumlah request ke server lebih sedikit dan pencarian jadi lebih efisien.
+2. `await` digunakan untuk menunggu hasil dari `fetch()` sebelum kode berikutnya dijalankan. Dengan begitu, response dari server bisa langsung digunakan setelah request selesai. Jika `await` nggak digunakan, `fetch()` akan langsung mengembalikan Promise sehingga kode berikutnya dapat berjalan sebelum response dari server tersedia.
+3. XSS (Cross-Site Scripting) adalah serangan dengan menyisipkan kode HTML atau JavaScript berbahaya ke dalam halaman web. Output AJAX yang dimasukkan ke halaman menggunakan JavaScript, terutama melalui `innerHTML`, perlu diperhatikan karena data dari server dapat langsung menjadi bagian dari HTML. Pada fitur Experience, data yang dimasukkan ke HTML di-escape menggunakan `escapeHtml()`, sedangkan input dari form dibersihkan menggunakan `strip_tags()` untuk mencegah tag HTML berbahaya.
+
+AI Disclosure
+Dalam pengerjaan Tugas 5, saya menggunakan ChatGPT sebagai bantuan untuk memahami instruksi Tutorial 5 dan menerapkan konsep AJAX, debouncing, modal, toast, serta pencegahan XSS pada bagian Experience. Saya juga menggunakan ChatGPT untuk membantu mengecek error pada kode, mencari penyebab masalah pada implementasi, dan memahami bagian kode yang perlu disesuaikan dengan struktur myportofolio saya.

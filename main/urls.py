@@ -7,6 +7,8 @@ from main.views import (
     create_experience,
     get_experience_json,
     delete_experience,
+    toggle_experience_star,
+    create_experience_ajax,
     create_volunteering,
     update_volunteering,
     delete_volunteering,
@@ -43,6 +45,16 @@ urlpatterns = [
         "experience/<uuid:experience_id>/delete/",
         delete_experience,
         name="delete_experience"
+    ),
+    path(
+        "experience/<uuid:experience_id>/star/",
+        toggle_experience_star,
+        name="toggle_experience_star"
+    ),
+    path(
+        "experience/add-ajax/",
+        create_experience_ajax,
+        name="create_experience_ajax"
     ),
 
     # Volunteering
