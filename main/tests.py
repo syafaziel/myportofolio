@@ -1,3 +1,4 @@
+
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -36,26 +37,30 @@ class MainTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experience.html")
-        self.assertContains(response, self.experience.title)
-        self.assertContains(response, self.experience.description)
-        self.assertContains(response, "Volunteer")
-        self.assertContains(response, "Sedang berlangsung")
+        self.assertContains(response, 'id="grid"')
+        self.assertContains(response, 'id="experience-search-form"')
         self.assertContains(response, f'href="{reverse("main:show_main")}"')
 
     def test_empty_experience_page(self):
         Experience.objects.all().delete()
         response = self.client.get(reverse("main:show_experience"))
 
-        self.assertContains(response, "Belum ada pengalaman yang ditambahkan.")
+        self.assertContains(response, "Belum ada experience yang ditambahkan.")
 
     def test_completed_experience(self):
         self.experience.ended_at = timezone.now()
         self.experience.save()
-        response = self.client.get(reverse("main:show_experience"))
 
+        response = self.client.get(
+            reverse(
+                "api:experience-detail",
+                kwargs={"experience_id": self.experience.id},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
         self.assertFalse(self.experience.is_ongoing)
-        self.assertContains(response, "Selesai")
-        self.assertNotContains(response, "Sedang berlangsung")
+        self.assertFalse(response.json()["is_ongoing"])
 
     def test_volunteering_page_is_accessible(self):
         response = self.client.get(reverse("main:show_volunteering"))
@@ -77,7 +82,8 @@ class MainTest(TestCase):
 
     def test_empty_volunteering_page(self):
         response = self.client.get(reverse("main:show_volunteering"))
+
         self.assertContains(
             response,
-            "Belum ada pengalaman volunteering yang ditambahkan."
+            "Belum ada volunteering yang ditambahkan."
         )
