@@ -83,349 +83,216 @@
     {% include "components/volunteering_form_modal.html" %}
 {% endif %}
 
+{% csrf_token %}
 <script>
-    // Konfigurasi
-    const BASE_VOLUNTEERING_ENDPOINT = "{% url 'main:get_volunteering_json' %}";
+    
+    const BASE_VOLUNTEERING_ENDPOINT = "{% url 'api:volunteering_list' %}";
+    const DETAIL_VOLUNTEERING_ENDPOINT = "{% url 'api:volunteering_detail' '00000000-0000-0000-0000-000000000000' %}";
+    const STAR_VOLUNTEERING_ENDPOINT = "{% url 'api:volunteering_star' '00000000-0000-0000-0000-000000000000' %}";
     const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+    const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
 
-    let volunteeringAbortController;
-
-    // Elemen DOM
     const loadingState = document.getElementById('loading');
     const errorState = document.getElementById('error');
     const emptyState = document.getElementById('empty');
     const gridContainer = document.getElementById('grid');
     const searchForm = document.getElementById('volunteering-search-form');
     const searchInput = document.getElementById('search-input');
+    const volunteeringForm = document.getElementById('volunteering-form');
 
-    const SEARCH_DEBOUNCE_DELAY = 300;
+    let volunteeringsAbortController;
     let searchDebounceTimer;
 
+    function getCookie(name) {
+        const prefix = `${name}=`;
+        const cookie = document.cookie.split(';').map(value => value.trim())
+            .find(value => value.startsWith(prefix));
+        return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
+    }
 
-    // Menyembunyikan / menampilkan section halaman
-    function displayPageSection({
-        showLoading = false,
-        showError = false,
-        showEmpty = false,
-        showGrid = false
-    }) {
+    function escapeHtml(value) {
+        return String(value ?? '').replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+    }
+
+    function volunteeringEndpoint(pattern, id) {
+        return pattern.replace('00000000-0000-0000-0000-000000000000', id);
+    }
+
+    function displayPageSection({ showLoading = false, showError = false,
+        showEmpty = false, showGrid = false }) {
         loadingState.classList.toggle('hide', !showLoading);
         errorState.classList.toggle('hide', !showError);
         emptyState.classList.toggle('hide', !showEmpty);
         gridContainer.classList.toggle('hide', !showGrid);
     }
 
-    function escapeHtml(value) {
-        return String(value ?? '')
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('"', '&quot;')
-            .replaceAll("'", '&#39;');
-    }
+    function buildVolunteeringCardElement(volunteering) {
+        const article = document.createElement('article');
+        article.className = 'experience-card';
 
-    // Membuat elemen card volunteering
-    function buildVolunteeringCardElement(item) {
-        const volunteering = item.fields;
-        const volunteeringId = item.pk;
-
-        const articleElement = document.createElement('article');
-        articleElement.className = 'volunteering-card';
-
-
-        // URL delete
-        const deleteUrl = "{% url 'main:delete_volunteering' '00000000-0000-0000-0000-000000000000' %}"
-            .replace(
-                '00000000-0000-0000-0000-000000000000',
-                volunteeringId
-            );
-
-
-        // URL star
-        const starUrl = "{% url 'main:toggle_star' '00000000-0000-0000-0000-000000000000' %}"
-            .replace(
-                '00000000-0000-0000-0000-000000000000',
-                volunteeringId
-            );
-
-
-        // Tombol delete hanya untuk superuser
-        const deleteHtml = IS_SUPERUSER
-            ? `
-                <form method="post" action="${deleteUrl}" style="display:inline;">
-                    {% csrf_token %}
-                    <button
-                        type="submit"
-                        class="button button-danger"
-                        onclick="return confirm('Yakin ingin menghapus volunteering ini?');"
-                    >
-                        Hapus
-                    </button>
-                </form>
-            `
+        const image = volunteering.thumbnail
+            ? `<img src="${escapeHtml(volunteering.thumbnail)}" alt="${escapeHtml(volunteering.title)}" class="project-image">`
             : '';
 
+        const star = IS_AUTHENTICATED
+            ? `<button type="button" class="button button-star${volunteering.is_starred ? ' is-starred' : ''}"
+                data-action="star" data-id="${escapeHtml(volunteering.id)}"
+                title="${escapeHtml(volunteering.starred_by_names)}">
+                ${volunteering.is_starred ? 'Unstar' : 'Star'} (${volunteering.star_count})</button>`
+            : `<a href="{% url 'main:login' %}" class="button">Login to star (${volunteering.star_count})</a>`;
 
-        // Star
-        const isStarredClass = volunteering.is_starred
-            ? " is-starred"
-            : "";
+        const remove = IS_SUPERUSER
+            ? `<button type="button" class="button button-danger" data-action="delete"
+                data-id="${escapeHtml(volunteering.id)}">Delete</button>`
+            : '';
 
-        const starText = volunteering.is_starred
-            ? "Unstar"
-            : "Star";
+        article.innerHTML = `${image}<h2>${escapeHtml(volunteering.title)}</h2>
+            <span class="experience-category">${escapeHtml(volunteering.category)}</span>
+            <p class="experience-description">${escapeHtml(volunteering.description)}</p>
+            <div class="project-card-actions"><div class="project-actions">
+            ${star}${remove}</div></div>`;
 
-        const starTitle = volunteering.star_count > 0
-            ? `Dibintangi oleh ${escapeHtml(volunteering.starred_by_names)}`
-            : "Jadilah yang pertama memberi star";
-
-
-        // Card
-        const completeCardHtml = `
-            <h2>${escapeHtml(volunteering.title)}</h2>
-
-            <span class="experience-category">
-                ${escapeHtml(volunteering.category)}
-            </span>
-
-            <p class="experience-description">
-                ${escapeHtml(volunteering.description)}
-            </p>
-
-            <div class="project-card-actions">
-                <div class="project-actions">
-
-                    <form
-                        method="post"
-                        action="${starUrl}"
-                        class="star-form"
-                    >
-                        {% csrf_token %}
-
-                        <button
-                            type="submit"
-                            class="button button-star${isStarredClass}"
-                            title="${starTitle}"
-                        >
-                            ★
-                            ${starText}
-                            <span class="star-count">
-                                ${volunteering.star_count}
-                            </span>
-                        </button>
-                    </form>
-
-                    ${deleteHtml}
-
-                </div>
-            </div>
-        `;
-
-        articleElement.innerHTML = completeCardHtml;
-
-        return articleElement;
+        return article;
     }
 
-
-    // Fetch data volunteering
-    async function fetchVolunteering(searchQuery = "") {
-
-        if (volunteeringAbortController) {
-            volunteeringAbortController.abort();
-        }
-
-        volunteeringAbortController = new AbortController();
+    async function fetchVolunteerings(searchQuery = '') {
+        if (volunteeringsAbortController) volunteeringsAbortController.abort();
+        volunteeringsAbortController = new AbortController();
 
         try {
-            displayPageSection({
-                showLoading: true
-            });
+            displayPageSection({ showLoading: true });
 
-            const url = searchQuery
-                ? `${BASE_VOLUNTEERING_ENDPOINT}?title=${encodeURIComponent(searchQuery)}`
-                : BASE_VOLUNTEERING_ENDPOINT;
+            const url = new URL(BASE_VOLUNTEERING_ENDPOINT, window.location.origin);
+            if (searchQuery) url.searchParams.set('search', searchQuery);
 
             const response = await fetch(url, {
-                headers: {
-                    'Accept': 'application/json'
-                },
-                signal: volunteeringAbortController.signal
+                headers: { Accept: 'application/json' },
+                signal: volunteeringsAbortController.signal,
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch data');
-            }
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-            const volunteeringData = await response.json();
-
-
-            if (volunteeringData.length === 0) {
-
-                displayPageSection({
-                    showEmpty: true
-                });
-
-            } else {
-
-                gridContainer.innerHTML = '';
-
-                volunteeringData.forEach(item => {
-                    gridContainer.appendChild(
-                        buildVolunteeringCardElement(item)
-                    );
-                });
-
-                displayPageSection({
-                    showGrid: true
-                });
-            }
-
-        } catch (error) {
-
-            if (error.name === 'AbortError') {
-                return;
-            }
-
-            console.error(
-                'Error loading volunteering:',
-                error
-            );
+            const volunteerings = await response.json();
+            gridContainer.replaceChildren(...volunteerings.map(buildVolunteeringCardElement));
 
             displayPageSection({
-                showError: true
+                showGrid: volunteerings.length > 0,
+                showEmpty: volunteerings.length === 0
             });
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            console.error(error);
+            displayPageSection({ showError: true });
         }
     }
 
-
-    // Event handler untuk search
-    function searchVolunteering() {
-        fetchVolunteering(searchInput.value.trim());
+    function apiErrorMessage(data, status) {
+        const messages = Object.values(data).flat()
+            .filter(value => typeof value === 'string');
+        return messages.join(' ') || `Request failed (HTTP ${status}).`;
     }
 
-    searchInput.addEventListener("input", function() {
-        clearTimeout(searchDebounceTimer);
+    async function writeVolunteering(url, method, payload) {
+        const response = await fetch(url, {
+            method,
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: payload === undefined ? undefined : JSON.stringify(payload),
+        });
 
-        searchDebounceTimer = setTimeout(function() {
-            searchVolunteering();
-        }, SEARCH_DEBOUNCE_DELAY);
-    });
+        if (response.status === 204) return null;
 
-    searchForm.addEventListener("submit", function(event) {
-        event.preventDefault();
-        clearTimeout(searchDebounceTimer);
-        searchVolunteering();
-    });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(apiErrorMessage(data, response.status));
 
-    const CREATE_VOLUNTEERING_ENDPOINT = "{% url 'main:create_volunteering_ajax' %}";
-    const volunteeringForm = document.getElementById('volunteering-form');
-
-    // Membaca nilai cookie CSRF
-    function getCookie(name) {
-        let cookieValue = null;
-
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(
-                        cookie.substring(name.length + 1)
-                    );
-                    break;
-                }
-            }
-        }
-
-        return cookieValue;
+        return data;
     }
 
-    // Mengirim data volunteering ke server
     async function addVolunteering(event) {
         event.preventDefault();
 
-        const submitButton = volunteeringForm.querySelector(
-            'button[type="submit"]'
-        );
-
-        submitButton.disabled = true;
+        const button = volunteeringForm.querySelector('button[type="submit"]');
+        button.disabled = true;
 
         try {
-            const response = await fetch(CREATE_VOLUNTEERING_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: new FormData(volunteeringForm),
-            });
+            const fields = new FormData(volunteeringForm);
+            const payload = Object.fromEntries([
+                'title', 'description', 'category', 'thumbnail',
+            ].map(name => [name, fields.get(name)]));
 
-            const result = await response.json().catch(() => ({}));
+            await writeVolunteering(BASE_VOLUNTEERING_ENDPOINT, 'POST', payload);
 
-            if (response.ok) {
+            volunteeringForm.reset();
+            document.getElementById('add-volunteering-modal').hidePopover();
 
-                volunteeringForm.reset();
+            showToast('Success', 'Volunteering created.', 'success');
+            await fetchVolunteerings(searchInput.value.trim());
+        } catch (error) {
+            showToast('Could not create volunteering', error.message, 'error');
+        } finally {
+            button.disabled = false;
+        }
+    }
 
-                closeVolunteeringModal();
+    if (volunteeringForm) {
+        volunteeringForm.addEventListener('submit', addVolunteering);
+    }
 
-                showToast(
-                    'Berhasil',
-                    'Volunteering baru berhasil ditambahkan!',
-                    'success'
-                );
+    gridContainer.addEventListener('click', async function(event) {
+        const button = event.target.closest('button[data-action]');
+        if (!button || button.disabled) return;
 
-            fetchVolunteering(searchInput.value.trim());
+        const action = button.dataset.action;
 
-        } else {
+        if (action === 'delete' &&
+            !window.confirm('Delete this volunteering?')) return;
 
-            const errorMessages = result.errors
-                ? Object.values(result.errors)
-                    .flat()
-                    .map(error => error.message)
-                : [
-                    result.message ||
-                    `Terjadi kesalahan (status ${response.status}).`
-                ];
+        button.disabled = true;
+
+        try {
+            const pattern = action === 'star'
+                ? STAR_VOLUNTEERING_ENDPOINT
+                : DETAIL_VOLUNTEERING_ENDPOINT;
+
+            await writeVolunteering(
+                volunteeringEndpoint(pattern, button.dataset.id),
+                action === 'star' ? 'POST' : 'DELETE'
+            );
 
             showToast(
-                'Gagal menambahkan volunteering',
-                errorMessages.join(' '),
-                'error'
+                'Success',
+                action === 'star' ? 'Star updated.' : 'Volunteering deleted.',
+                'success'
             );
+
+            await fetchVolunteerings(searchInput.value.trim());
+        } catch (error) {
+            showToast('Request failed', error.message, 'error');
+        } finally {
+            button.disabled = false;
         }
+    });
 
-    } catch (error) {
-
-        console.error('Error adding volunteering:', error);
-
-        showToast(
-            'Gagal menambahkan volunteering',
-            'Tidak dapat terhubung ke server. Silakan coba lagi.',
-            'error'
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(
+            () => fetchVolunteerings(searchInput.value.trim()),
+            300
         );
+    });
 
-    } finally {
+    searchForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        clearTimeout(searchDebounceTimer);
+        fetchVolunteerings(searchInput.value.trim());
+    });
 
-        submitButton.disabled = false;
-
-    }
-}
-
-if (volunteeringForm) {
-    volunteeringForm.addEventListener('submit', addVolunteering);
-}
-
-    // Jalankan pertama kali
-    fetchVolunteering(
-        searchInput.value.trim()
-    );
-
-    function closeVolunteeringModal() { //WOI
-        document
-            .getElementById("add-volunteering-modal")
-            .hidePopover();
-    }
+    fetchVolunteerings(searchInput.value.trim());
 
 </script>
 

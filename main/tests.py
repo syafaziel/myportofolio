@@ -75,10 +75,24 @@ class MainTest(TestCase):
             category="volunteer",
         )
 
+        # Memastikan halaman volunteering berhasil dimuat
         response = self.client.get(reverse("main:show_volunteering"))
 
-        self.assertContains(response, volunteering.title)
-        self.assertContains(response, volunteering.description)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="grid"')
+
+        # Memastikan data volunteering tersedia melalui API
+        api_response = self.client.get(reverse("api:volunteering_list"))
+
+        self.assertEqual(api_response.status_code, 200)
+
+        volunteering_data = api_response.json()
+
+        self.assertEqual(volunteering_data[0]["title"], volunteering.title)
+        self.assertEqual(
+            volunteering_data[0]["description"],
+            volunteering.description,
+        )
 
     def test_empty_volunteering_page(self):
         response = self.client.get(reverse("main:show_volunteering"))

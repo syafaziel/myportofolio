@@ -82,3 +82,22 @@ Pertanyaan Reflektif
 
 AI Disclosure
 Dalam pengerjaan Tugas 5, saya menggunakan ChatGPT sebagai bantuan untuk memahami instruksi Tutorial 5 dan menerapkan konsep AJAX, debouncing, modal, toast, serta pencegahan XSS pada bagian Experience. Saya juga menggunakan ChatGPT untuk membantu mengecek error pada kode, mencari penyebab masalah pada implementasi, dan memahami bagian kode yang perlu disesuaikan dengan struktur myportofolio saya.
+
+### Tugas 6
+Pertanyaan Reflektif
+1. REST adalah pendekatan arsitektur API yang mengatur komunikasi antara client dan server menggunakan resource dan HTTP method. API yang mengembalikan JSON saja belum tentu RESTful karena REST juga memiliki aturan mengenai penggunaan URL, HTTP method, dan interaksi dengan resource.
+PUT digunakan untuk mengganti keseluruhan data, sedangkan PATCH hanya mengubah bagian tertentu. Contohnya, PUT digunakan ketika ingin memperbarui seluruh informasi volunteering, sementara PATCH digunakan jika hanya ingin mengubah judulnya.
+2. Serializer berfungsi untuk mengubah data model Django menjadi JSON dan sebaliknya, sekaligus melakukan validasi terhadap data yang diterima. Dibandingkan membuat dictionary secara manual dengan JsonResponse, serializer lebih praktis karena pengubahan data dan validasi bisa dilakukan dalam satu tempat sehingga kode lebih rapi dan terstruktur.
+3. Autentikasi adalah proses memastikan identitas pengguna, sedangkan otorisasi menentukan tindakan apa saja yang boleh dilakukan pengguna tersebut. Contohnya, pengguna biasa hanya bisa melihat dan melakukan star, Editor bisa mengubah data, sedangkan superuser memiliki akses penuh.
+Pemeriksaan permission harus dilakukan di server karena menyembunyikan tombol di template saja tidak cukup. Pengguna tetap bisa mengakses endpoint API secara langsung, sehingga server harus tetap memeriksa hak akses setiap request.
+4. Ketika menggunakan SessionAuthentication, browser mengirimkan cookie session secara otomatis. Karena itu, token CSRF diperlukan untuk memastikan request yang mengubah data berasal dari sumber yang valid dan bukan request yang dibuat pihak lain.
+Test dengan force_authenticate tidak cukup untuk menguji CSRF karena metode tersebut melewati proses autentikasi session yang sebenarnya. Untuk mengujinya, kita perlu menggunakan APIClient dengan enforce_csrf_checks=True agar bisa memastikan request tanpa token CSRF ditolak dan request dengan token yang valid berhasil.
+
+AI Disclosure
+Selama pengerjaan Tugas 6, saya menggunakan ChatGPT sebagai pendamping untuk memahami materi dan membantu proses implementasi API pada bagian Volunteering.
+Penggunaan AI mencakup beberapa hal berikut:
+
+- Memahami materi Tutorial 7: Membantu memahami konsep REST API, serializer, autentikasi, otorisasi, permission, serta CSRF pada Django REST Framework dengan penjelasan yang lebih sederhana.
+- Implementasi API: Membantu memahami dan menyesuaikan kode dari tutorial agar dapat digunakan pada model Volunteering, termasuk pembuatan endpoint untuk menampilkan, menambahkan, memperbarui, menghapus, dan melakukan star pada data.
+- Penerapan permission: Membantu memeriksa pengaturan hak akses untuk pengguna biasa, Editor, dan superuser agar sesuai dengan ketentuan tugas.
+- Pengujian: Membantu memahami error yang muncul saat menjalankan test, mencari penyebab kegagalan, dan menyesuaikan pengujian dengan implementasi AJAX dan API yang digunakan.
